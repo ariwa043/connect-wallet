@@ -1,24 +1,27 @@
-import { useWeb3Modal } from '@web3modal/react';
-import { useAtom } from 'jotai';
-import { accountAtom } from './store';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { useAccount, useDisconnect } from 'wagmi';
 
 export default function ConnectButton() {
   const { open } = useWeb3Modal();
-  const [account, setAccount] = useAtom(accountAtom);
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
 
-  const handleConnect = async () => {
-    const provider = await open();
-    const ethersProvider = new ethers.providers.Web3Provider(provider);
-    const signer = ethersProvider.getSigner();
-    setAccount(await signer.getAddress());
+  const handleClick = async () => {
+    if (isConnected) {
+      await disconnect();
+    } else {
+      open();
+    }
   };
 
   return (
-    <button 
-      onClick={handleConnect}
-      className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+    <button
+      onClick={handleClick}
+      className="w-full px-4 py-2 text-white font-semibold bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
     >
-      {account ? `Connected: ${account.slice(0, 6)}...` : "Connect Wallet"}
+      {isConnected
+        ? `Disconnect ${address?.slice(0, 6)}...${address?.slice(-4)}`
+        : 'Connect Wallet'}
     </button>
   );
 }
